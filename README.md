@@ -1,6 +1,6 @@
 # Flashcard Extractor
 
-A TypeScript React application that extracts flashcards from Wikipedia articles or custom text using OpenAI's API.
+A TypeScript React application that extracts flashcards from Wikipedia articles or custom text using OpenAI's API. Pre-requisites: Node.js and npm (v23.11.0).
 
 ## Setup
 
