@@ -4,6 +4,8 @@ import { fetchWikipediaContent } from '../services/wikipediaService';
 import { FlashcardSet } from '../types';
 import { getLLMConfig } from '../config';
 import { MockModeToggle } from './MockModeToggle';
+import { v4 as uuidv4 } from 'uuid';
+import Papa from 'papaparse';
 import '../styles/InputForm.css';
 
 interface InputFormProps {
@@ -94,6 +96,104 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
     }
   };
 
+  // Import helpers
+  const readFileAsText = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ''));
+      reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  };
+
+  const onImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await readFileAsText(file);
+      const data = JSON.parse(text);
+
+      const toCards = (val: any): { question: string; answer: string }[] => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (Array.isArray(val.flashcards)) return val.flashcards;
+        if (Array.isArray(val.cards)) return val.cards;
+        return [];
+      };
+
+      const rawCards = toCards(data);
+      if (!rawCards.length) {
+        throw new Error('No flashcards found in JSON');
+      }
+
+      const cards = rawCards.map((c: any) => ({
+        id: uuidv4(),
+        question: String(c.question ?? ''),
+        answer: String(c.answer ?? '')
+      }));
+
+      const titleFromFile = file.name.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      setFlashcardSet({
+        title: data.title || `${titleFromFile}`,
+        source: data.source || 'Imported JSON',
+        cards,
+        createdAt: new Date()
+      });
+    } catch (err: any) {
+      setError(`Error importing JSON: ${err?.message || 'Invalid JSON format'}`);
+    }
+  };
+
+  const parseCSV = (text: string): { question: string; answer: string }[] => {
+    const result = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: (h: string) => h.trim().toLowerCase(),
+    });
+
+    // If headers are missing, Papa won't give us the fields we expect
+    const fields: string[] = (result as any).meta?.fields || [];
+    const hasQuestion = fields.some(f => f.toLowerCase() === 'question');
+    const hasAnswer = fields.some(f => f.toLowerCase() === 'answer');
+    if (!hasQuestion || !hasAnswer) return [];
+
+    const rows = (result.data as any[]);
+    const cards = rows
+      .map(r => ({
+        question: String(r.question ?? '').trim(),
+        answer: String(r.answer ?? '').trim(),
+      }))
+      .filter(r => r.question.length > 0 || r.answer.length > 0);
+
+    return cards;
+  };
+
+  const onImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await readFileAsText(file);
+      const rawCards = parseCSV(text);
+      if (!rawCards.length) {
+        throw new Error('CSV must have headers "Question,Answer" and at least one row');
+      }
+      const cards = rawCards.map(c => ({ id: uuidv4(), question: c.question, answer: c.answer }));
+      const titleFromFile = file.name.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      setFlashcardSet({
+        title: `${titleFromFile}`,
+        source: 'Imported CSV',
+        cards,
+        createdAt: new Date()
+      });
+    } catch (err: any) {
+      setError(`Error importing CSV: ${err?.message || 'Invalid CSV format'}`);
+    }
+  };
+
   return (
     <div className="input-form-container">
       <form onSubmit={handleSubmit}>
@@ -132,6 +232,30 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
         </div>
 
         <MockModeToggle onChange={setUseMockMode} />
+        
+        <div className="import-buttons">
+          <input
+            type="file"
+            accept="application/json,.json"
+            onChange={onImportJSON}
+            data-testid="import-json-input"
+            style={{ display: 'none' }}
+            id="import-json-input"
+          />
+          <input
+            type="file"
+            accept="text/csv,.csv"
+            onChange={onImportCSV}
+            data-testid="import-csv-input"
+            style={{ display: 'none' }}
+            id="import-csv-input"
+          />
+          <div className="import-buttons-row">
+            <label htmlFor="import-json-input" className="import-btn">Import JSON</label>
+            <label htmlFor="import-csv-input" className="import-btn">Import CSV</label>
+          </div>
+          <small>Import previously exported flashcards in JSON or CSV format.</small>
+        </div>
         
         <button className="submit-button" type="submit">Generate Flashcards</button>
       </form>

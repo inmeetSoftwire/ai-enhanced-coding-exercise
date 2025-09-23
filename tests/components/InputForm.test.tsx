@@ -344,4 +344,102 @@ describe('InputForm Component', () => {
       expect(mockExtractFlashcards).toHaveBeenCalledWith(mockWikiContent.content, undefined, true);
     });
   });
+
+  test('imports flashcards from JSON successfully', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />
+    );
+
+    const file = new File([
+      JSON.stringify({ flashcards: [ { question: 'Q1', answer: 'A1' }, { question: 'Q2', answer: 'A2' } ] })
+    ], 'my_set.json', { type: 'application/json' });
+
+    const input = screen.getByTestId('import-json-input') as HTMLInputElement;
+    await userEvent.upload(input, file);
+
+    await waitFor(() => {
+      expect(mockSetFlashcardSet).toHaveBeenCalledWith(expect.objectContaining({
+        source: 'Imported JSON',
+        title: 'my set',
+        cards: expect.arrayContaining([
+          expect.objectContaining({ question: 'Q1', answer: 'A1' }),
+          expect.objectContaining({ question: 'Q2', answer: 'A2' })
+        ])
+      }));
+    });
+  });
+
+  test('shows error on invalid JSON import', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />
+    );
+
+    const file = new File([ '{ invalid json' ], 'bad.json', { type: 'application/json' });
+    const input = screen.getByTestId('import-json-input') as HTMLInputElement;
+    await userEvent.upload(input, file);
+
+    await waitFor(() => {
+      expect(mockSetError).toHaveBeenCalled();
+      expect(mockSetFlashcardSet).not.toHaveBeenCalled();
+    });
+  });
+
+  test('imports flashcards from CSV successfully', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />
+    );
+
+    const csv = [
+      'Question,Answer',
+      'What is React?,A UI library',
+      '"What is \"JS\"?","A language, often used for the web"'
+    ].join('\n');
+
+    const file = new File([ csv ], 'cards.csv', { type: 'text/csv' });
+    const input = screen.getByTestId('import-csv-input') as HTMLInputElement;
+    await userEvent.upload(input, file);
+
+    await waitFor(() => {
+      expect(mockSetFlashcardSet).toHaveBeenCalledWith(expect.objectContaining({
+        source: 'Imported CSV',
+        title: 'cards',
+        cards: expect.arrayContaining([
+          expect.objectContaining({ question: 'What is React?', answer: 'A UI library' }),
+          expect.objectContaining({ question: 'What is "JS"?', answer: 'A language, often used for the web' })
+        ])
+      }));
+    });
+  });
+
+  test('shows error on invalid CSV import', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />
+    );
+
+    const csv = 'NoQuestionHeader,NoAnswerHeader\nfoo,bar';
+    const file = new File([ csv ], 'bad.csv', { type: 'text/csv' });
+    const input = screen.getByTestId('import-csv-input') as HTMLInputElement;
+    await userEvent.upload(input, file);
+
+    await waitFor(() => {
+      expect(mockSetError).toHaveBeenCalled();
+      expect(mockSetFlashcardSet).not.toHaveBeenCalled();
+    });
+  });
 });
