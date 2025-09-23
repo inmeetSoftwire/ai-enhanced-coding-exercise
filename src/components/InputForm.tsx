@@ -48,6 +48,95 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
       return 'Wikipedia Article';
     }
   };
+  const readFileText = async (file: File): Promise<string> => {
+    const reader = new FileReader();
+    return await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+  };
+  const ensureIds = (cards: { id?: string; question: string; answer: string }[]): { id: string; question: string; answer: string }[] => {
+    return cards.map((c, idx) => ({ id: c.id ?? `${Date.now()}_${idx}`, question: c.question, answer: c.answer }));
+  };
+  const handleImportJSON = async (file: File): Promise<void> => {
+    setError(null);
+    try {
+      const text = await readFileText(file);
+      const parsed = JSON.parse(text) as unknown;
+      let title = 'Imported Flashcards';
+      let source = 'Imported JSON';
+      let cards: { id?: string; question: string; answer: string }[] = [];
+      let createdAt: Date = new Date();
+      if (Array.isArray(parsed)) {
+        cards = parsed as { id?: string; question: string; answer: string }[];
+      } else if (parsed !== null && typeof parsed === 'object') {
+        const obj = parsed as Partial<FlashcardSet> & { cards?: { id?: string; question: string; answer: string }[] };
+        if (typeof obj.title === 'string' && obj.title.trim() !== '') title = obj.title;
+        if (typeof obj.source === 'string' && obj.source.trim() !== '') source = obj.source;
+        if (Array.isArray(obj.cards)) cards = obj.cards;
+        if (obj.createdAt instanceof Date) createdAt = obj.createdAt; else if (typeof (obj as { createdAt?: string }).createdAt === 'string') createdAt = new Date((obj as { createdAt?: string }).createdAt as string);
+      }
+      const normalizedCards = ensureIds(cards);
+      setFlashcardSet({ title, source, cards: normalizedCards, createdAt });
+    } catch (err) {
+      setError('Failed to import JSON');
+    }
+  };
+  const parseCSV = (csvText: string): { question: string; answer: string }[] => {
+    const lines = csvText.split(/\r?\n/).filter((l) => l.trim() !== '');
+    if (lines.length === 0) return [];
+    const rows = lines.map((line) => {
+      const cells: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i += 1) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes === true && line[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && inQuotes === false) {
+          cells.push(current);
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      cells.push(current);
+      return cells.map((c) => c.trim());
+    });
+    const header = rows[0].map((h) => h.toLowerCase());
+    const hasHeader = header.includes('question') && header.includes('answer');
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+    return dataRows.map((r) => {
+      if (hasHeader) {
+        const qIdx = header.indexOf('question');
+        const aIdx = header.indexOf('answer');
+        return { question: r[qIdx] ?? '', answer: r[aIdx] ?? '' };
+      }
+      return { question: r[0] ?? '', answer: r[1] ?? '' };
+    }).filter((x) => x.question !== '' || x.answer !== '');
+  };
+  const handleImportCSV = async (file: File): Promise<void> => {
+    setError(null);
+    try {
+      const text = await readFileText(file);
+      const rows = parseCSV(text);
+      const cards = ensureIds(rows);
+      setFlashcardSet({
+        title: 'Imported CSV Flashcards',
+        source: 'Imported CSV',
+        cards,
+        createdAt: new Date(),
+      });
+    } catch (_) {
+      setError('Failed to import CSV');
+    }
+  };
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
@@ -140,6 +229,58 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
 
         <MockModeToggle onChange={setUseMockMode} />
 
+        <div className="import-buttons">
+          <input
+            data-testid="import-json-input"
+            id="import-json-input"
+            type="file"
+            accept="application/json,.json"
+            style={{ display: 'none' }}
+            onChange={(e): void => {
+              const f = e.target.files && e.target.files[0];
+              if (f) {
+                handleImportJSON(f).catch(() => {});
+                e.currentTarget.value = '';
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="import-button"
+            onClick={(): void => {
+              const el = document.getElementById('import-json-input') as HTMLInputElement | null;
+              if (el) el.click();
+            }}
+          >
+            Import JSON
+          </button>
+
+          <input
+            data-testid="import-csv-input"
+            id="import-csv-input"
+            type="file"
+            accept="text/csv,.csv"
+            style={{ display: 'none' }}
+            onChange={(e): void => {
+              const f = e.target.files && e.target.files[0];
+              if (f) {
+                handleImportCSV(f).catch(() => {});
+                e.currentTarget.value = '';
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="import-button"
+            onClick={(): void => {
+              const el = document.getElementById('import-csv-input') as HTMLInputElement | null;
+              if (el) el.click();
+            }}
+          >
+            Import CSV
+          </button>
+        </div>
+
         <button className="submit-button" type="submit">Generate Flashcards</button>
       </form>
     </div>
@@ -147,3 +288,4 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
 };
 
 export default InputForm;
+

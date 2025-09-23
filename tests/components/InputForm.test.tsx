@@ -36,6 +36,62 @@ describe('InputForm Component', () => {
     jest.clearAllMocks();
   });
 
+  test('imports flashcards from JSON array file', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />,
+    );
+
+    const data = [
+      { question: 'Q1', answer: 'A1' },
+      { question: 'Q2', answer: 'A2' },
+    ];
+    const file = new File([JSON.stringify(data)], 'flashcards.json', { type: 'application/json' });
+
+    const input = screen.getByTestId('import-json-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(mockSetFlashcardSet).toHaveBeenCalled();
+    });
+
+    const callArg = (mockSetFlashcardSet as jest.Mock).mock.calls[0][0];
+    expect(callArg.title).toBe('Imported Flashcards');
+    expect(callArg.source).toBe('Imported JSON');
+    expect(Array.isArray(callArg.cards)).toBe(true);
+    expect(callArg.cards[0]).toEqual(expect.objectContaining({ question: 'Q1', answer: 'A1', id: expect.any(String) }));
+    expect(callArg.cards[1]).toEqual(expect.objectContaining({ question: 'Q2', answer: 'A2', id: expect.any(String) }));
+  });
+
+  test('imports flashcards from CSV file with header', async () => {
+    render(
+      <InputForm
+        setFlashcardSet={mockSetFlashcardSet}
+        setLoading={mockSetLoading}
+        setError={mockSetError}
+      />,
+    );
+
+    const csv = 'Question,Answer\nWhat is 2+2?,4\n"What is \"AI\"?","Artificial Intelligence"\n';
+    const file = new File([csv], 'flashcards.csv', { type: 'text/csv' });
+
+    const input = screen.getByTestId('import-csv-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(mockSetFlashcardSet).toHaveBeenCalled();
+    });
+
+    const callArg = (mockSetFlashcardSet as jest.Mock).mock.calls[0][0];
+    expect(callArg.title).toBe('Imported CSV Flashcards');
+    expect(callArg.source).toBe('Imported CSV');
+    expect(callArg.cards[0]).toEqual(expect.objectContaining({ question: 'What is 2+2?', answer: '4', id: expect.any(String) }));
+    expect(callArg.cards[1]).toEqual(expect.objectContaining({ question: 'What is "AI"?', answer: 'Artificial Intelligence', id: expect.any(String) }));
+  });
+
   test('renders input form with default elements', () => {
     render(
       <InputForm
