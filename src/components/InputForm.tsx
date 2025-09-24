@@ -50,15 +50,19 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
   };
   const readFileText = async (file: File): Promise<string> => {
     const reader = new FileReader();
-    return await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('Failed to read file'));
+    return new Promise<string>((resolve, reject): void => {
+      reader.onload = (): void => resolve(String(reader.result));
+      reader.onerror = (): void => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   };
-  const ensureIds = (cards: { id?: string; question: string; answer: string }[]): { id: string; question: string; answer: string }[] => {
-    return cards.map((c, idx) => ({ id: c.id ?? `${Date.now()}_${idx}`, question: c.question, answer: c.answer }));
-  };
+  const ensureIds = (
+    cards: { id?: string; question: string; answer: string }[],
+  ): { id: string; question: string; answer: string }[] => cards.map((c, idx) => ({
+    id: c.id ?? `${Date.now()}_${idx}`,
+    question: c.question,
+    answer: c.answer,
+  }));
   const handleImportJSON = async (file: File): Promise<void> => {
     setError(null);
     try {
@@ -71,14 +75,25 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
       if (Array.isArray(parsed)) {
         cards = parsed as { id?: string; question: string; answer: string }[];
       } else if (parsed !== null && typeof parsed === 'object') {
-        const obj = parsed as Partial<FlashcardSet> & { cards?: { id?: string; question: string; answer: string }[] };
+        const obj = parsed as Partial<FlashcardSet> & {
+          cards?: { id?: string; question: string; answer: string }[]
+        };
         if (typeof obj.title === 'string' && obj.title.trim() !== '') title = obj.title;
         if (typeof obj.source === 'string' && obj.source.trim() !== '') source = obj.source;
         if (Array.isArray(obj.cards)) cards = obj.cards;
-        if (obj.createdAt instanceof Date) createdAt = obj.createdAt; else if (typeof (obj as { createdAt?: string }).createdAt === 'string') createdAt = new Date((obj as { createdAt?: string }).createdAt as string);
+        if (obj.createdAt instanceof Date) {
+          createdAt = obj.createdAt;
+        } else if (typeof (obj as { createdAt?: string }).createdAt === 'string') {
+          createdAt = new Date((obj as { createdAt?: string }).createdAt as string);
+        }
       }
       const normalizedCards = ensureIds(cards);
-      setFlashcardSet({ title, source, cards: normalizedCards, createdAt });
+      setFlashcardSet({
+        title,
+        source,
+        cards: normalizedCards,
+        createdAt,
+      });
     } catch (err) {
       setError('Failed to import JSON');
     }
@@ -92,12 +107,26 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
       let inQuotes = false;
       for (let i = 0; i < line.length; i += 1) {
         const ch = line[i];
-        if (ch === '"') {
+        if (ch === '\\') {
           if (inQuotes === true && line[i + 1] === '"') {
             current += '"';
             i += 1;
           } else {
-            inQuotes = !inQuotes;
+            current += ch;
+          }
+        } else if (ch === '"') {
+          if (inQuotes === true && line[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else if (inQuotes === true) {
+            const next = line[i + 1];
+            if (next === undefined || next === ',') {
+              inQuotes = false;
+            } else {
+              current += '"';
+            }
+          } else {
+            inQuotes = true;
           }
         } else if (ch === ',' && inQuotes === false) {
           cells.push(current);
@@ -107,7 +136,7 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
         }
       }
       cells.push(current);
-      return cells.map((c) => c.trim());
+      return cells;
     });
     const header = rows[0].map((h) => h.toLowerCase());
     const hasHeader = header.includes('question') && header.includes('answer');
@@ -288,4 +317,3 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
 };
 
 export default InputForm;
-
