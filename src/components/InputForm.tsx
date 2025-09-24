@@ -167,6 +167,7 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
 
   return (
     <div className="input-form-container">
+      <h2 className="form-title">Generate new flash cards:</h2>
       <form
         onSubmit={(e): void => {
           handleSubmit(e).catch((_) => { /* Error handled in handleSubmit */ });
@@ -208,6 +209,10 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
 
         <MockModeToggle onChange={setUseMockMode} />
 
+        <button className="submit-button" type="submit">Generate Flashcards</button>
+
+        <div className="divider"><span>OR</span></div>
+
         <div className="import-buttons">
           <input
             data-testid="import-json-input"
@@ -231,7 +236,7 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
               if (el) el.click();
             }}
           >
-            Import JSON
+            Import from JSON
           </button>
 
           <input
@@ -256,11 +261,9 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
               if (el) el.click();
             }}
           >
-            Import CSV
+            Import from CSV
           </button>
         </div>
-
-        <button className="submit-button" type="submit">Generate Flashcards</button>
       </form>
     </div>
   );
