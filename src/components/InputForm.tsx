@@ -4,6 +4,7 @@ import { getLLMConfig } from '../config';
 import { extractFlashcards } from '../services/llmService';
 import { fetchWikipediaContent } from '../services/wikipediaService';
 import { FlashcardSet } from '../types';
+import { parseCsvToQA } from '../utils/csv';
 
 import { MockModeToggle } from './MockModeToggle';
 import '../styles/InputForm.css';
@@ -98,63 +99,12 @@ const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setE
       setError('Failed to import JSON');
     }
   };
-  const parseCSV = (csvText: string): { question: string; answer: string }[] => {
-    const lines = csvText.split(/\r?\n/).filter((l) => l.trim() !== '');
-    if (lines.length === 0) return [];
-    const rows = lines.map((line) => {
-      const cells: string[] = [];
-      let current = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i += 1) {
-        const ch = line[i];
-        if (ch === '\\') {
-          if (inQuotes === true && line[i + 1] === '"') {
-            current += '"';
-            i += 1;
-          } else {
-            current += ch;
-          }
-        } else if (ch === '"') {
-          if (inQuotes === true && line[i + 1] === '"') {
-            current += '"';
-            i += 1;
-          } else if (inQuotes === true) {
-            const next = line[i + 1];
-            if (next === undefined || next === ',') {
-              inQuotes = false;
-            } else {
-              current += '"';
-            }
-          } else {
-            inQuotes = true;
-          }
-        } else if (ch === ',' && inQuotes === false) {
-          cells.push(current);
-          current = '';
-        } else {
-          current += ch;
-        }
-      }
-      cells.push(current);
-      return cells;
-    });
-    const header = rows[0].map((h) => h.toLowerCase());
-    const hasHeader = header.includes('question') && header.includes('answer');
-    const dataRows = hasHeader ? rows.slice(1) : rows;
-    return dataRows.map((r) => {
-      if (hasHeader) {
-        const qIdx = header.indexOf('question');
-        const aIdx = header.indexOf('answer');
-        return { question: r[qIdx] ?? '', answer: r[aIdx] ?? '' };
-      }
-      return { question: r[0] ?? '', answer: r[1] ?? '' };
-    }).filter((x) => x.question !== '' || x.answer !== '');
-  };
+
   const handleImportCSV = async (file: File): Promise<void> => {
     setError(null);
     try {
       const text = await readFileText(file);
-      const rows = parseCSV(text);
+      const rows = parseCsvToQA(text);
       const cards = ensureIds(rows);
       setFlashcardSet({
         title: 'Imported CSV Flashcards',
