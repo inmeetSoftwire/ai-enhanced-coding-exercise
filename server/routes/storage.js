@@ -20,7 +20,7 @@ router.get('/decks', (req, res) => {
     const db = getDb();
     const rows = db
       .prepare(
-        'SELECT id, name, description, createdAt, updatedAt FROM decks ORDER BY createdAt DESC'
+        'SELECT id, title, source, createdAt, updatedAt FROM decks ORDER BY createdAt DESC'
       )
       .all();
     return res.json(rows);
@@ -30,19 +30,19 @@ router.get('/decks', (req, res) => {
 });
 
 router.post('/decks', (req, res) => {
-  const { name, description } = req.body || {};
-  if (!name || typeof name !== 'string') {
-    return res.status(400).json({ message: 'name is required (string)' });
+  const { title, source } = req.body || {};
+  if (!title || typeof title !== 'string') {
+    return res.status(400).json({ message: 'title is required (string)' });
   }
   try {
     const db = getDb();
     const now = new Date().toISOString();
     const id = uuidv4();
     db.prepare(
-      'INSERT INTO decks (id, name, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
-    ).run(id, name.trim(), description || null, now, now);
+      'INSERT INTO decks (id, title, source, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
+    ).run(id, title.trim(), source || null, now, now);
     const created = db
-      .prepare('SELECT id, name, description, createdAt, updatedAt FROM decks WHERE id = ?')
+      .prepare('SELECT id, title, source, createdAt, updatedAt FROM decks WHERE id = ?')
       .get(id);
     return res.status(201).json(created);
   } catch (err) {

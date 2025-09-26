@@ -32,8 +32,8 @@ describe('storageService', () => {
     const decks: Deck[] = [
       {
         id: 'd1',
-        name: 'Biology 101',
-        description: 'Intro deck',
+        title: 'Biology 101',
+        source: 'Intro deck',
         createdAt: new Date('2024-01-01T00:00:00Z').toISOString(),
         updatedAt: new Date('2024-01-01T00:00:00Z').toISOString(),
       },
@@ -49,8 +49,8 @@ describe('storageService', () => {
   test('createDeck posts to /decks and returns created deck', async () => {
     const created: Deck = {
       id: 'd2',
-      name: 'Custom Text Flashcards',
-      description: 'Custom text',
+      title: 'Custom Text Flashcards',
+      source: 'Custom text',
       createdAt: new Date('2024-02-01T00:00:00Z').toISOString(),
       updatedAt: new Date('2024-02-01T00:00:00Z').toISOString(),
     };
@@ -59,8 +59,8 @@ describe('storageService', () => {
     const res = await createDeck('Custom Text Flashcards', 'Custom text');
 
     expect(mockPost).toHaveBeenCalledWith('/decks', {
-      name: 'Custom Text Flashcards',
-      description: 'Custom text',
+      title: 'Custom Text Flashcards',
+      source: 'Custom text',
     });
     expect(res).toEqual(created);
   });
@@ -108,8 +108,8 @@ describe('storageService', () => {
   test('loadDeckAsSet composes FlashcardSet from deck + cards', async () => {
     const deck: Deck = {
       id: 'd4',
-      name: 'Chemistry',
-      description: 'Saved deck',
+      title: 'Chemistry',
+      source: 'Saved deck',
       createdAt: new Date('2024-04-01T00:00:00Z').toISOString(),
       updatedAt: new Date('2024-04-01T00:00:00Z').toISOString(),
     };
@@ -146,8 +146,8 @@ describe('storageService', () => {
 
     const createdDeck: Deck = {
       id: 'deck-xyz',
-      name: 'Physics',
-      description: 'Custom text',
+      title: 'Physics',
+      source: 'Custom text',
       createdAt: new Date('2024-05-01T00:00:00Z').toISOString(),
       updatedAt: new Date('2024-05-01T00:00:00Z').toISOString(),
     };
@@ -160,8 +160,8 @@ describe('storageService', () => {
     const deck = await saveSetAsDeck(set);
 
     expect(mockPost).toHaveBeenNthCalledWith(1, '/decks', {
-      name: 'Physics',
-      description: 'Custom text',
+      title: 'Physics',
+      source: 'Custom text',
     });
     expect(mockPost).toHaveBeenNthCalledWith(2, `/decks/${createdDeck.id}/cards`, {
       cards: [

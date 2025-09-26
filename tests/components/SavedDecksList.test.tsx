@@ -29,8 +29,8 @@ describe('SavedDecksList', () => {
     const decks: Deck[] = [
       {
         id: 'd3',
-        name: 'Deck To Delete',
-        description: 'desc',
+        title: 'Deck To Delete',
+        source: 'desc',
         createdAt: new Date('2024-03-01T00:00:00Z').toISOString(),
         updatedAt: new Date('2024-03-01T00:00:00Z').toISOString(),
       },
@@ -82,8 +82,8 @@ describe('SavedDecksList', () => {
     const decks: Deck[] = [
       {
         id: 'd1',
-        name: 'Custom Text Flashcards',
-        description: 'Custom text',
+        title: 'Custom Text Flashcards',
+        source: 'Custom text',
         createdAt: new Date('2024-01-01T00:00:00Z').toISOString(),
         updatedAt: new Date('2024-01-01T00:00:00Z').toISOString(),
       },
@@ -123,8 +123,8 @@ describe('SavedDecksList', () => {
     const decksSecond: Deck[] = [
       {
         id: 'd2',
-        name: 'Biology 101',
-        description: 'Intro deck',
+        title: 'Biology 101',
+        source: 'Intro deck',
         createdAt: new Date('2024-02-01T00:00:00Z').toISOString(),
         updatedAt: new Date('2024-02-01T00:00:00Z').toISOString(),
       },

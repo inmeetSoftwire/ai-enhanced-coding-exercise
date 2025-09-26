@@ -27,7 +27,7 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleDelete = async (deck: Deck): Promise<void> => {
-    const ok = window.confirm(`Delete deck "${deck.name}"? This cannot be undone.`);
+    const ok = window.confirm(`Delete deck "${deck.title}"? This cannot be undone.`);
     if (!ok) return;
     setError(null);
     setLoading(true);
@@ -81,7 +81,7 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
         {decks.map((d) => (
           <li key={d.id} className="saved-decks-item">
             <div className="saved-deck-info">
-              <span className="saved-deck-name" title={d.description ?? ''}>{d.name}</span>
+              <span className="saved-deck-name" title={d.source ?? ''}>{d.title}</span>
               <span className="saved-deck-meta">
                 {new Date(d.createdAt).toLocaleString()}
               </span>

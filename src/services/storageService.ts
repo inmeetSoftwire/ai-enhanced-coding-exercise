@@ -4,8 +4,8 @@ import { Flashcard, FlashcardSet } from '../types';
 
 export type Deck = {
   id: string;
-  name: string;
-  description: string | null;
+  title: string;
+  source: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -22,10 +22,10 @@ export const listDecks = async (): Promise<Deck[]> => {
 };
 
 export const createDeck = async (
-  name: string,
-  description: string | null,
+  title: string,
+  source: string | null,
 ): Promise<Deck> => {
-  const res = await client.post<Deck>('/decks', { name, description });
+  const res = await client.post<Deck>('/decks', { title, source });
   return res.data;
 };
 
@@ -55,8 +55,8 @@ export const getDeckCards = async (deckId: string): Promise<Flashcard[]> => {
 export const loadDeckAsSet = async (deck: Deck): Promise<FlashcardSet> => {
   const cards = await getDeckCards(deck.id);
   return {
-    title: deck.name,
-    source: deck.description ?? 'Saved deck',
+    title: deck.title,
+    source: deck.source ?? 'Saved deck',
     cards,
     createdAt: new Date(deck.createdAt),
   };

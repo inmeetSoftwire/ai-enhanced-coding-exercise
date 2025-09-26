@@ -22,12 +22,12 @@ function getDb() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS decks (
       id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT,
+      title TEXT NOT NULL,
+      source TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_decks_name ON decks(name);
+    CREATE INDEX IF NOT EXISTS idx_decks_title ON decks(title);
 
     CREATE TABLE IF NOT EXISTS flashcards (
       id TEXT PRIMARY KEY,
