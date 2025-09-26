@@ -11,18 +11,55 @@ jest.mock('../../src/services/storageService', () => {
     listDecks: jest.fn(),
     loadDeckAsSet: jest.fn(),
     deleteDeck: jest.fn(),
+    updateDeck: jest.fn(),
   };
 });
 
-const { listDecks, loadDeckAsSet, deleteDeck } = jest.requireMock('../../src/services/storageService') as {
+const { listDecks, loadDeckAsSet, deleteDeck, updateDeck } = jest.requireMock('../../src/services/storageService') as {
   listDecks: jest.Mock;
   loadDeckAsSet: jest.Mock;
   deleteDeck: jest.Mock;
+  updateDeck: jest.Mock;
 };
 
 describe('SavedDecksList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  test('renames a deck and refreshes list', async () => {
+    const decks: Deck[] = [
+      {
+        id: 'd9',
+        title: 'Old Title',
+        source: 'desc',
+        createdAt: new Date('2024-03-01T00:00:00Z').toISOString(),
+        updatedAt: new Date('2024-03-01T00:00:00Z').toISOString(),
+      },
+    ];
+    const renamed: Deck = { ...decks[0], title: 'New Title' };
+    (listDecks as jest.Mock).mockResolvedValueOnce(decks).mockResolvedValueOnce([renamed]);
+    (updateDeck as jest.Mock).mockResolvedValueOnce(renamed);
+
+    const promptSpy = jest.spyOn(window, 'prompt').mockReturnValue('New Title');
+
+    const onOpen = jest.fn();
+    render(<SavedDecksList onOpen={onOpen} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Old Title')).toBeInTheDocument();
+    });
+
+    const renameBtn = screen.getByRole('button', { name: 'Rename' });
+    fireEvent.click(renameBtn);
+
+    await waitFor(() => {
+      expect(updateDeck).toHaveBeenCalledWith('d9', { title: 'New Title' });
+      expect(listDecks).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('New Title')).toBeInTheDocument();
+    });
+
+    promptSpy.mockRestore();
   });
 
   test('deletes a deck and refreshes list', async () => {

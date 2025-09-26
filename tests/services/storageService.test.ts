@@ -3,9 +3,10 @@ import axios from 'axios';
 const mockGet = jest.fn();
 const mockPost = jest.fn();
 const mockDelete = jest.fn();
+const mockPatch = jest.fn();
 
 jest.mock('axios', () => {
-  const create = jest.fn(() => ({ get: mockGet, post: mockPost, delete: mockDelete }));
+  const create = jest.fn(() => ({ get: mockGet, post: mockPost, delete: mockDelete, patch: mockPatch }));
   return {
     __esModule: true,
     default: { create },
@@ -170,6 +171,24 @@ describe('storageService', () => {
       ],
     });
     expect(deck).toEqual(createdDeck);
+  });
+
+  test('updateDeck calls PATCH /decks/:deckId with payload', async () => {
+    const { updateDeck } = await import('../../src/services/storageService');
+    const deckId = 'deck-xyz';
+    const updated: Deck = {
+      id: deckId,
+      title: 'New Title',
+      source: 'Custom text',
+      createdAt: new Date('2024-05-01T00:00:00Z').toISOString(),
+      updatedAt: new Date('2024-05-02T00:00:00Z').toISOString(),
+    };
+    mockPatch.mockResolvedValueOnce({ data: updated });
+
+    const res = await updateDeck(deckId, { title: 'New Title' });
+
+    expect(mockPatch).toHaveBeenCalledWith(`/decks/${deckId}`, { title: 'New Title' });
+    expect(res).toEqual(updated);
   });
 
   test('deleteDeck calls DELETE /decks/:deckId', async () => {
