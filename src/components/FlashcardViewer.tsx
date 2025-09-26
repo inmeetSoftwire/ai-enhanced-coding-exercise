@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { saveSetAsDeck } from '../services/storageService';
 import { FlashcardSet } from '../types';
 import '../styles/FlashcardViewer.css';
 
@@ -12,11 +13,25 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ flashcardSet, onReset
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [flipped, setFlipped] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [saving, setSaving] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleNext = (): void => {
     if (currentIndex < flashcardSet.cards.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setFlipped(false);
+    }
+  };
+
+  const handleSave = async (): Promise<void> => {
+    setSaveError(null);
+    setSaving(true);
+    try {
+      await saveSetAsDeck(flashcardSet);
+    } catch (e) {
+      setSaveError('Failed to save deck');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -181,6 +196,9 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ flashcardSet, onReset
       )}
 
       <div className="action-buttons">
+        <button type="button" onClick={(): void => { handleSave().catch(() => {}); }} className="export-btn" disabled={saving}>
+          {saving ? 'Saving…' : 'Save Deck'}
+        </button>
         <button type="button" onClick={exportAsCSV} className="export-btn">
           Export as CSV
         </button>
@@ -191,6 +209,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ flashcardSet, onReset
           Create New Flashcards
         </button>
       </div>
+      {saveError !== null && <p style={{ color: 'red' }}>{saveError}</p>}
     </div>
   );
 };

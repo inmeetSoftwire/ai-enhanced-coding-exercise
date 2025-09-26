@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import FlashcardViewer from './components/FlashcardViewer';
 import InputForm from './components/InputForm';
+import SavedDecksList from './components/SavedDecksList';
 import { FlashcardSet } from './types';
 import './styles/App.css';
 
@@ -19,11 +20,14 @@ const App: React.FC = () => {
 
       <main>
         {flashcardSet === null ? (
-          <InputForm
-            setFlashcardSet={setFlashcardSet}
-            setLoading={setLoading}
-            setError={setError}
-          />
+          <>
+            <SavedDecksList onOpen={(set): void => setFlashcardSet(set)} />
+            <InputForm
+              setFlashcardSet={setFlashcardSet}
+              setLoading={setLoading}
+              setError={setError}
+            />
+          </>
         ) : (
           <FlashcardViewer
             flashcardSet={flashcardSet}
