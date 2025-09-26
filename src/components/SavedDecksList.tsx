@@ -86,20 +86,22 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
                 {new Date(d.createdAt).toLocaleString()}
               </span>
             </div>
-            <button
-              type="button"
-              className="saved-deck-open"
-              onClick={(): void => { handleOpen(d).catch(() => {}); }}
-            >
-              Open
-            </button>
-            <button
-              type="button"
-              className="saved-decks-refresh"
-              onClick={(): void => { handleDelete(d).catch(() => {}); }}
-            >
-              Delete
-            </button>
+            <div className="saved-deck-actions">
+              <button
+                type="button"
+                className="saved-deck-open"
+                onClick={(): void => { handleOpen(d).catch(() => {}); }}
+              >
+                Open
+              </button>
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => { handleDelete(d).catch(() => {}); }}
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

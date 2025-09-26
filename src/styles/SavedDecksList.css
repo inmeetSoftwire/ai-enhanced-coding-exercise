@@ -63,6 +63,12 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.saved-deck-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .saved-deck-info {
   display: flex;
   flex-direction: column;
