@@ -110,4 +110,21 @@ router.post('/decks/:deckId/cards', (req, res) => {
   }
 });
 
+router.delete('/decks/:deckId', (req, res) => {
+  const { deckId } = req.params;
+  try {
+    const db = getDb();
+    const deck = db
+      .prepare('SELECT id FROM decks WHERE id = ?')
+      .get(deckId);
+    if (!deck) {
+      return res.status(404).json({ message: 'deck not found' });
+    }
+    db.prepare('DELETE FROM decks WHERE id = ?').run(deckId);
+    return res.status(204).send();
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

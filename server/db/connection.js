@@ -11,14 +11,14 @@ function getDb() {
   if (!fs.existsSync(storageDir)) {
     fs.mkdirSync(storageDir, { recursive: true });
   }
-
   const dbPath = path.join(storageDir, 'database.sqlite');
   const db = new Database(dbPath);
 
   db.pragma('journal_mode = WAL');
   db.pragma('synchronous = NORMAL');
   db.pragma('busy_timeout = 3000');
-
+  db.pragma('foreign_keys = ON');
+  
   db.exec(`
     CREATE TABLE IF NOT EXISTS decks (
       id TEXT PRIMARY KEY,
