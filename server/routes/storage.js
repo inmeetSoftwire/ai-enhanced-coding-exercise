@@ -127,4 +127,29 @@ router.delete('/decks/:deckId', (req, res) => {
   }
 });
 
+router.patch('/decks/:deckId', (req, res) => {
+  const { deckId } = req.params;
+  const { title, source } = req.body || {};
+  if ((title !== undefined && typeof title !== 'string')
+    || (source !== undefined && source !== null && typeof source !== 'string')) {
+    return res.status(400).json({ message: 'invalid payload' });
+  }
+  try {
+    const db = getDb();
+    const exists = db.prepare('SELECT id FROM decks WHERE id = ?').get(deckId);
+    if (!exists) return res.status(404).json({ message: 'deck not found' });
+    const fields = [];
+    const values = [];
+    if (typeof title === 'string') { fields.push('title = ?'); values.push(title.trim()); }
+    if (source === null || typeof source === 'string') { fields.push('source = ?'); values.push(source ?? null); }
+    fields.push('updatedAt = ?'); values.push(new Date().toISOString());
+    const sql = `UPDATE decks SET ${fields.join(', ')} WHERE id = ?`;
+    db.prepare(sql).run(...values, deckId);
+    const updated = db.prepare('SELECT id, title, source, createdAt, updatedAt FROM decks WHERE id = ?').get(deckId);
+    return res.json(updated);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

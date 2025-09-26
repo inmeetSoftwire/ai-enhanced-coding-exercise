@@ -71,3 +71,11 @@ export const saveSetAsDeck = async (set: FlashcardSet): Promise<Deck> => {
 export const deleteDeck = async (deckId: string): Promise<void> => {
   await client.delete(`/decks/${deckId}`);
 };
+
+export const updateDeck = async (
+  deckId: string,
+  patch: { title?: string; source?: string | null },
+): Promise<Deck> => {
+  const res = await client.patch<Deck>(`/decks/${deckId}`, patch);
+  return res.data;
+};
