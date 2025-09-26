@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { loadDeckAsSet, listDecks, deleteDeck, type Deck } from '../services/storageService';
+import { loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck } from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
 
@@ -36,6 +36,23 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
       await fetchDecks();
     } catch (e) {
       setError('Failed to delete deck');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRename = async (deck: Deck): Promise<void> => {
+    const next = window.prompt('Enter new deck title', deck.title);
+    if (next === null) return;
+    const trimmed = next.trim();
+    if (trimmed.length === 0) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await updateDeck(deck.id, { title: trimmed });
+      await fetchDecks();
+    } catch (e) {
+      setError('Failed to rename deck');
     } finally {
       setLoading(false);
     }
@@ -93,6 +110,13 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
                 onClick={(): void => { handleOpen(d).catch(() => {}); }}
               >
                 Open
+              </button>
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => { handleRename(d).catch(() => {}); }}
+              >
+                Rename
               </button>
               <button
                 type="button"
