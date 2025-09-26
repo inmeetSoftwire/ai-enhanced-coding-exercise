@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { loadDeckAsSet, listDecks, type Deck } from '../services/storageService';
+import { loadDeckAsSet, listDecks, deleteDeck, type Deck } from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
 
@@ -21,6 +21,21 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
       setDecks(data);
     } catch (e) {
       setError('Failed to load saved decks');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (deck: Deck): Promise<void> => {
+    const ok = window.confirm(`Delete deck "${deck.name}"? This cannot be undone.`);
+    if (!ok) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await deleteDeck(deck.id);
+      await fetchDecks();
+    } catch (e) {
+      setError('Failed to delete deck');
     } finally {
       setLoading(false);
     }
@@ -77,6 +92,13 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
               onClick={(): void => { handleOpen(d).catch(() => {}); }}
             >
               Open
+            </button>
+            <button
+              type="button"
+              className="saved-decks-refresh"
+              onClick={(): void => { handleDelete(d).catch(() => {}); }}
+            >
+              Delete
             </button>
           </li>
         ))}

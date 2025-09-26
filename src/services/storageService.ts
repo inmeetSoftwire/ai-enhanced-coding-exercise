@@ -67,3 +67,7 @@ export const saveSetAsDeck = async (set: FlashcardSet): Promise<Deck> => {
   await createCards(deck.id, set.cards);
   return deck;
 };
+
+export const deleteDeck = async (deckId: string): Promise<void> => {
+  await client.delete(`/decks/${deckId}`);
+};
