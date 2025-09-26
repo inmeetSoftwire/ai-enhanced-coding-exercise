@@ -2,9 +2,10 @@ import axios from 'axios';
 
 const mockGet = jest.fn();
 const mockPost = jest.fn();
+const mockDelete = jest.fn();
 
 jest.mock('axios', () => {
-  const create = jest.fn(() => ({ get: mockGet, post: mockPost }));
+  const create = jest.fn(() => ({ get: mockGet, post: mockPost, delete: mockDelete }));
   return {
     __esModule: true,
     default: { create },
@@ -169,5 +170,15 @@ describe('storageService', () => {
       ],
     });
     expect(deck).toEqual(createdDeck);
+  });
+
+  test('deleteDeck calls DELETE /decks/:deckId', async () => {
+    const { deleteDeck } = await import('../../src/services/storageService');
+    const deckId = 'deck-xyz';
+    mockDelete.mockResolvedValueOnce({ status: 204 });
+
+    await deleteDeck(deckId);
+
+    expect(mockDelete).toHaveBeenCalledWith(`/decks/${deckId}`);
   });
 });

@@ -10,17 +10,54 @@ jest.mock('../../src/services/storageService', () => {
     __esModule: true,
     listDecks: jest.fn(),
     loadDeckAsSet: jest.fn(),
+    deleteDeck: jest.fn(),
   };
 });
 
-const { listDecks, loadDeckAsSet } = jest.requireMock('../../src/services/storageService') as {
+const { listDecks, loadDeckAsSet, deleteDeck } = jest.requireMock('../../src/services/storageService') as {
   listDecks: jest.Mock;
   loadDeckAsSet: jest.Mock;
+  deleteDeck: jest.Mock;
 };
 
 describe('SavedDecksList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  test('deletes a deck and refreshes list', async () => {
+    const decks: Deck[] = [
+      {
+        id: 'd3',
+        name: 'Deck To Delete',
+        description: 'desc',
+        createdAt: new Date('2024-03-01T00:00:00Z').toISOString(),
+        updatedAt: new Date('2024-03-01T00:00:00Z').toISOString(),
+      },
+    ];
+    (listDecks as jest.Mock).mockResolvedValueOnce(decks).mockResolvedValueOnce([]);
+    (deleteDeck as jest.Mock).mockResolvedValueOnce(undefined);
+
+    // Stub confirm to return true
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+    const onOpen = jest.fn();
+    render(<SavedDecksList onOpen={onOpen} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deck To Delete')).toBeInTheDocument();
+    });
+
+    const deleteBtn = screen.getByRole('button', { name: 'Delete' });
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(deleteDeck).toHaveBeenCalledWith('d3');
+      expect(listDecks).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('No saved decks yet')).toBeInTheDocument();
+    });
+
+    confirmSpy.mockRestore();
   });
 
   test('renders header and empty state', async () => {
