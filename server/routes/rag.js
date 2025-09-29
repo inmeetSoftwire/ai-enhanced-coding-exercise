@@ -11,7 +11,7 @@ const getCollection = async () => {
     name: 'flashcards',
     embeddingFunction: new OpenAIEmbeddingFunction({
       modelName: 'text-embedding-3-small',
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env.LLM_API_KEY,
     }),
   });
   return collection;

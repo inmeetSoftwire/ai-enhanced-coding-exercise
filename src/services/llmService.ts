@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getLLMConfig } from '../config';
 import { Flashcard } from '../types';
 
-import { truncateContent } from './llmHelpers';
+import { truncateContent, needsCORSproxy } from './llmHelpers';
 
 // This service is compatible with both OpenAI and LMStudio APIs
 
@@ -37,15 +37,13 @@ export const extractFlashcards = async (
     if (!config.baseUrl) {
       throw new Error('API base URL is not configured. Please check your environment variables.');
     }
-    const isProxyRequired = true;
+    const isProxyRequired = needsCORSproxy(config.baseUrl);
 
     let apiKeyToUse = '';
     if (apiKey !== undefined && apiKey !== '') {
       apiKeyToUse = apiKey;
     } else if (config.defaultApiKey !== undefined && config.defaultApiKey !== '') {
       apiKeyToUse = config.defaultApiKey;
-    } else {
-      apiKeyToUse = isProxyRequired ? 'not-needed' : '';
     }
 
     let baseURL = config.baseUrl;
@@ -83,7 +81,7 @@ export const extractFlashcards = async (
       'Content-Type': 'application/json',
     };
 
-    if (apiKeyToUse !== '') {
+    if (!isProxyRequired && apiKeyToUse !== '') {
       headers.Authorization = `Bearer ${apiKeyToUse}`;
     }
 
@@ -116,7 +114,7 @@ export const extractFlashcards = async (
       throw new Error('No response from LLM API');
     }
 
-    const parsedResponse = JSON.parse(responseContent) as FlashcardResponse;
+    const parsedResponse = JSON.parse(responseContent) as FlashcardResponse;  
 
     if (parsedResponse.flashcards === undefined
       || Array.isArray(parsedResponse.flashcards) === false) {
