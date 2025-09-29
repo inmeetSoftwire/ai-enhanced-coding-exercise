@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import FlashcardViewer from './components/FlashcardViewer';
 import InputForm from './components/InputForm';
 import SavedDecksList from './components/SavedDecksList';
+import SearchBar from './components/SearchBar';
 import { FlashcardSet } from './types';
 import './styles/App.css';
 
@@ -16,6 +17,7 @@ const App: React.FC = () => {
       <header>
         <h1>Flashcard Extractor</h1>
         <p>Extract flashcards from Wikipedia articles or text</p>
+        <SearchBar />
       </header>
 
       <main>
