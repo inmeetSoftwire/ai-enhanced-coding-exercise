@@ -1,5 +1,5 @@
 import type { Flashcard } from '../types';
-import { searchFlashcards } from './chromaService';
+import { searchFlashcards } from './ragApi';
 
 export type SearchOptions = {
   deckId?: string;

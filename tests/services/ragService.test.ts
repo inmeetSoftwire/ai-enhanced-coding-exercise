@@ -1,11 +1,11 @@
 import { parseQuery, searchCardsForQuery } from '../../src/services/ragService';
 import type { Flashcard } from '../../src/types';
 
-jest.mock('../../src/services/chromaService', () => ({
+jest.mock('../../src/services/ragApi', () => ({
   searchFlashcards: jest.fn(),
 }));
 
-import { searchFlashcards } from '../../src/services/chromaService';
+import { searchFlashcards } from '../../src/services/ragApi';
 
 describe('ragService', () => {
   beforeEach(() => {
