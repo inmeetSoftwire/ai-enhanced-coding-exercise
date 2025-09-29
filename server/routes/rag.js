@@ -73,13 +73,22 @@ router.get('/search', async (req, res) => {
     });
 
     const metadatas = Array.isArray(result.metadatas) ? result.metadatas[0] : [];
-    const cards = (metadatas || [])
-      .map((m) => ({ id: m.cardId, question: m.question, answer: m.answer }))
-      .filter((c) => {
-        if (exclude.length === 0) return true;
-        const hay = `${c.question} ${c.answer}`.toLowerCase();
-        return exclude.every((t) => hay.includes(t) === false);
-      });
+    const distances = Array.isArray(result.distances) ? result.distances[0] : [];
+
+    const pairs = (metadatas || []).map((m, i) => ({
+      m,
+      distance: Number.isFinite(distances[i]) ? distances[i] : Number.POSITIVE_INFINITY,
+    }));
+
+    pairs.sort((a, b) => a.distance - b.distance);
+
+    const filtered = pairs.filter(({ m }) => {
+      if (exclude.length === 0) return true;
+      const hay = `${m.question} ${m.answer}`.toLowerCase();
+      return exclude.every((t) => hay.includes(t) === false);
+    });
+
+    const cards = filtered.map(({ m }) => ({ id: m.cardId, question: m.question, answer: m.answer }));
 
     return res.json({ cards });
   } catch (err) {
