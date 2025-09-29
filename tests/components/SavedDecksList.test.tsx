@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 
 import SavedDecksList from '../../src/components/SavedDecksList';
 import type { Deck } from '../../src/services/storageService';
@@ -41,8 +41,6 @@ describe('SavedDecksList', () => {
     (listDecks as jest.Mock).mockResolvedValueOnce(decks).mockResolvedValueOnce([renamed]);
     (updateDeck as jest.Mock).mockResolvedValueOnce(renamed);
 
-    const promptSpy = jest.spyOn(window, 'prompt').mockReturnValue('New Title');
-
     const onOpen = jest.fn();
     render(<SavedDecksList onOpen={onOpen} />);
 
@@ -54,12 +52,22 @@ describe('SavedDecksList', () => {
     fireEvent.click(renameBtn);
 
     await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Enter new deck title')).toBeInTheDocument();
+    });
+
+    const dialog = screen.getByRole('dialog');
+    const input = within(dialog).getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'New Title' } });
+
+    const confirmBtn = screen.getByRole('button', { name: 'Confirm' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
       expect(updateDeck).toHaveBeenCalledWith('d9', { title: 'New Title' });
       expect(listDecks).toHaveBeenCalledTimes(2);
       expect(screen.getByText('New Title')).toBeInTheDocument();
     });
-
-    promptSpy.mockRestore();
   });
 
   test('deletes a deck and refreshes list', async () => {
@@ -75,9 +83,6 @@ describe('SavedDecksList', () => {
     (listDecks as jest.Mock).mockResolvedValueOnce(decks).mockResolvedValueOnce([]);
     (deleteDeck as jest.Mock).mockResolvedValueOnce(undefined);
 
-    // Stub confirm to return true
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-
     const onOpen = jest.fn();
     render(<SavedDecksList onOpen={onOpen} />);
 
@@ -88,13 +93,20 @@ describe('SavedDecksList', () => {
     const deleteBtn = screen.getByRole('button', { name: 'Delete' });
     fireEvent.click(deleteBtn);
 
+    // Confirmation UI should appear; confirm deletion
+    await waitFor(() => {
+      expect(screen.getByText('Confirm delete "Deck To Delete"?')).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+    const confirmBtn = screen.getByRole('button', { name: 'Confirm' });
+    fireEvent.click(confirmBtn);
+
     await waitFor(() => {
       expect(deleteDeck).toHaveBeenCalledWith('d3');
       expect(listDecks).toHaveBeenCalledTimes(2);
       expect(screen.getByText('No saved decks yet')).toBeInTheDocument();
     });
 
-    confirmSpy.mockRestore();
   });
 
   test('renders header and empty state', async () => {

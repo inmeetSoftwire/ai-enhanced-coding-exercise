@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-import { loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck } from '../services/storageService';
+import {
+  loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck,
+} from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
 
@@ -12,6 +14,9 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState<string>('');
 
   const fetchDecks = async (): Promise<void> => {
     setError(null);
@@ -27,13 +32,12 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleDelete = async (deck: Deck): Promise<void> => {
-    const ok = window.confirm(`Delete deck "${deck.title}"? This cannot be undone.`);
-    if (!ok) return;
     setError(null);
     setLoading(true);
     try {
       await deleteDeck(deck.id);
       await fetchDecks();
+      setConfirmingId(null);
     } catch (e) {
       setError('Failed to delete deck');
     } finally {
@@ -42,15 +46,15 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleRename = async (deck: Deck): Promise<void> => {
-    const next = window.prompt('Enter new deck title', deck.title);
-    if (next === null) return;
-    const trimmed = next.trim();
+    const trimmed = renameValue.trim();
     if (trimmed.length === 0) return;
     setError(null);
     setLoading(true);
     try {
       await updateDeck(deck.id, { title: trimmed });
       await fetchDecks();
+      setRenamingId(null);
+      setRenameValue('');
     } catch (e) {
       setError('Failed to rename deck');
     } finally {
@@ -114,14 +118,17 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => { handleRename(d).catch(() => {}); }}
+                onClick={(): void => {
+                  setRenamingId(d.id);
+                  setRenameValue(d.title);
+                }}
               >
                 Rename
               </button>
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => { handleDelete(d).catch(() => {}); }}
+                onClick={(): void => { setConfirmingId(d.id); }}
               >
                 Delete
               </button>
@@ -129,6 +136,72 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
           </li>
         ))}
       </ul>
+
+      {confirmingId !== null && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-content">
+            <p className="saved-deck-confirm-text">
+              {`Confirm delete "${(decks.find((x) => x.id === confirmingId) ?? { title: '' }).title}"?`}
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => {
+                  const deck = decks.find((x) => x.id === confirmingId);
+                  if (deck !== undefined) { handleDelete(deck).catch(() => {}); }
+                }}
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => { setConfirmingId(null); }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {renamingId !== null && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-content">
+            <div className="saved-deck-confirm-text">
+              Enter new deck title
+              <input
+                type="text"
+                value={renameValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                  setRenameValue(e.target.value);
+                }}
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => {
+                  const deck = decks.find((x) => x.id === renamingId);
+                  if (deck !== undefined) { handleRename(deck).catch(() => {}); }
+                }}
+                disabled={renameValue.trim().length === 0}
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                className="saved-decks-refresh"
+                onClick={(): void => { setRenamingId(null); setRenameValue(''); }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

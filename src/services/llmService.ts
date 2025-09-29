@@ -114,7 +114,7 @@ export const extractFlashcards = async (
       throw new Error('No response from LLM API');
     }
 
-    const parsedResponse = JSON.parse(responseContent) as FlashcardResponse;  
+    const parsedResponse = JSON.parse(responseContent) as FlashcardResponse;
 
     if (parsedResponse.flashcards === undefined
       || Array.isArray(parsedResponse.flashcards) === false) {
