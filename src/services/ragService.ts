@@ -1,4 +1,5 @@
 import type { Flashcard } from '../types';
+
 import { searchFlashcards } from './ragApi';
 
 export type SearchOptions = {

@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
+
 import type { Flashcard } from '../types';
 
-const getClient = () => {
+const getClient: () => AxiosInstance = (): AxiosInstance => {
   const API_BASE = (process.env.PROXY_BASE_URL !== undefined && process.env.PROXY_BASE_URL !== '')
     ? process.env.PROXY_BASE_URL
     : 'http://localhost:3001';

@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
-import { loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck } from '../services/storageService';
+import {
+  loadDeckAsSet,
+  listDecks,
+  deleteDeck,
+  updateDeck,
+  type Deck,
+} from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
 
@@ -12,6 +18,9 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [renamingDeckId, setRenamingDeckId] = useState<string | null>(null);
+  const [renameInput, setRenameInput] = useState<string>('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchDecks = async (): Promise<void> => {
     setError(null);
@@ -27,8 +36,6 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleDelete = async (deck: Deck): Promise<void> => {
-    const ok = window.confirm(`Delete deck "${deck.title}"? This cannot be undone.`);
-    if (!ok) return;
     setError(null);
     setLoading(true);
     try {
@@ -38,23 +45,24 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
       setError('Failed to delete deck');
     } finally {
       setLoading(false);
+      setConfirmDeleteId(null);
     }
   };
 
-  const handleRename = async (deck: Deck): Promise<void> => {
-    const newTitle = window.prompt('Enter new deck title', deck.title);
-    if (newTitle === null) return;
-    const trimmedNewTitle = newTitle.trim();
-    if (trimmedNewTitle.length === 0) return;
+  const handleRenameSave = async (deck: Deck): Promise<void> => {
+    const trimmed = renameInput.trim();
+    if (trimmed.length === 0) return;
     setError(null);
     setLoading(true);
     try {
-      await updateDeck(deck.id, { title: trimmedNewTitle });
+      await updateDeck(deck.id, { title: trimmed });
       await fetchDecks();
     } catch (e) {
       setError('Failed to rename deck');
     } finally {
       setLoading(false);
+      setRenamingDeckId(null);
+      setRenameInput('');
     }
   };
 
@@ -111,20 +119,65 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
               >
                 Open
               </button>
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => { handleRename(d).catch(() => {}); }}
-              >
-                Rename
-              </button>
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => { handleDelete(d).catch(() => {}); }}
-              >
-                Delete
-              </button>
+              {renamingDeckId === d.id ? (
+                <>
+                  <input
+                    type="text"
+                    className="saved-decks-rename-input"
+                    value={renameInput}
+                    onChange={(e): void => setRenameInput(e.target.value)}
+                    placeholder="New title"
+                  />
+                  <button
+                    type="button"
+                    className="saved-decks-refresh"
+                    onClick={(): void => { handleRenameSave(d).catch(() => {}); }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="saved-decks-refresh"
+                    onClick={(): void => { setRenamingDeckId(null); setRenameInput(''); }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="saved-decks-refresh"
+                  onClick={(): void => { setRenamingDeckId(d.id); setRenameInput(d.title); }}
+                >
+                  Rename
+                </button>
+              )}
+              {confirmDeleteId === d.id ? (
+                <>
+                  <button
+                    type="button"
+                    className="saved-decks-refresh"
+                    onClick={(): void => { handleDelete(d).catch(() => {}); }}
+                  >
+                    Confirm delete
+                  </button>
+                  <button
+                    type="button"
+                    className="saved-decks-refresh"
+                    onClick={(): void => { setConfirmDeleteId(null); }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="saved-decks-refresh"
+                  onClick={(): void => { setConfirmDeleteId(d.id); }}
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </li>
         ))}

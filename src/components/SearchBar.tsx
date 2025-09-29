@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
-import type { Flashcard } from '../types';
 import { searchCardsForQuery } from '../services/ragService';
-import  '../styles/SearchBar.css';
+import type { Flashcard } from '../types';
+
+import '../styles/SearchBar.css';
 
 type Props = {
   placeholder?: string;
@@ -30,31 +31,35 @@ const SearchBar: React.FC<Props> = ({ placeholder }): JSX.Element => {
   };
 
   return (
-    <section className='container' aria-label="Global search">
-      <form onSubmit={onSubmit} className='form'>
+    <section className="container" aria-label="Global search">
+      <form onSubmit={(e): void => { onSubmit(e).catch(() => {}); }} className="form">
         <input
-          className='input'
+          className="input"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder ?? 'Search (e.g. "bodies of water, excluding seas")'}
           aria-label="Search flashcards"
         />
-        <button className='button' type="submit" disabled={loading === true}>
+        <button className="button" type="submit" disabled={loading === true}>
           {loading === true ? 'Searching…' : 'Search'}
         </button>
       </form>
 
-      {error !== null && <div className='error'>{error}</div>}
+      {error !== null && <div className="error">{error}</div>}
 
       {results.length > 0 && (
-        <div className='results'>
-          <div className='summary'>{results.length} result(s)</div>
-          <ul className='list'>
+        <div className="results">
+          <div className="summary">
+            {results.length}
+            {' '}
+            result(s)
+          </div>
+          <ul className="list">
             {results.map((c) => (
-              <li key={c.id} className='item'>
-                <div className='q'>{c.question}</div>
-                <div className='a'>{c.answer}</div>
+              <li key={c.id} className="item">
+                <div className="q">{c.question}</div>
+                <div className="a">{c.answer}</div>
               </li>
             ))}
           </ul>
