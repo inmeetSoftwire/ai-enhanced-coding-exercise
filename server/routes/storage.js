@@ -31,7 +31,7 @@ router.get('/decks', (req, res) => {
 
 router.post('/decks', (req, res) => {
   const { title, source } = req.body || {};
-  if (!title || typeof title !== 'string') {
+  if (!title || title.trim() === '' || typeof title !== 'string') {
     return res.status(400).json({ message: 'title is required (string)' });
   }
   try {
