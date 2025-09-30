@@ -47,4 +47,11 @@ function getDb() {
   return dbInstance;
 }
 
-module.exports = { getDb };
+function closeDb() {
+  if (dbInstance) {
+    dbInstance.close();
+    dbInstance = undefined;
+  }
+}
+
+module.exports = { getDb, closeDb };
