@@ -10,6 +10,10 @@ const app = express();
 
 app.use(cors());
 
+// Minimal SQLite-backed storage endpoints
+const storageRouter = require('./routes/storage');
+app.use('/api/storage', storageRouter);
+
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} [${req.method}] ${req.url}`);
   next();
@@ -89,9 +93,36 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', mockModeAvailable: true });
 });
 
+const { closeDb } = require('./db/connection');
+
 const PORT = process.env.PROXY_PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
   console.log(`Forwarding requests from http://localhost:${PORT}/api/v1 to ${process.env.INFERENCE_SERVER_URL || 'http://localhost:1234'}`);
   console.log('Mock mode available: add ?mock=true to URL or set X-Use-Mock header to \'true\'');
+});
+
+const shutdown = (signal) => {
+  console.log(`${new Date().toISOString()} Received ${signal}, initiating graceful shutdown...`);
+  server.close(() => {
+    try {
+      closeDb();
+    } catch (e) {
+      console.error('Error closing database:', e);
+    }
+    console.log('Shutdown complete.');
+    process.exit(0);
+  });
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGHUP', () => shutdown('SIGHUP'));
+process.on('exit', (code) => {
+  try {
+    closeDb();
+  } catch (e) {
+    console.error('Error closing database on exit:', e);
+  }
+  console.log(`Process exiting with code ${code}`);
 });

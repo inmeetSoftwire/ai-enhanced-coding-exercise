@@ -1,0 +1,117 @@
+.saved-decks-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+}
+
+.saved-decks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.saved-decks-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.saved-decks-refresh {
+  padding: 0.5rem 0.9rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.saved-decks-refresh:hover {
+  background-color: #2d86c6;
+}
+
+.saved-decks-status {
+  color: #7f8c8d;
+  margin: 0.5rem 0;
+}
+
+.saved-decks-error {
+  color: #b91c1c;
+  margin: 0.5rem 0;
+}
+
+.saved-decks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.saved-decks-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.saved-deck-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.saved-deck-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-deck-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.saved-deck-meta {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.saved-deck-open {
+  padding: 0.45rem 0.9rem;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.saved-deck-open:hover {
+  background-color: #27ae60;
+}
+
+@media (max-width: 768px) {
+  .saved-decks-container {
+    padding: 1rem;
+    width: 95%;
+    margin: 0 auto 1rem;
+  }
+
+  .saved-decks-item {
+    gap: 0.75rem;
+  }
+
+  .saved-decks-open {
+    width: auto;
+  }
+}

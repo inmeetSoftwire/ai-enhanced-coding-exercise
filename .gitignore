@@ -2,3 +2,9 @@ node_modules
 .env
 coverage
 .idea
+
+# SQLite database files
+server/storage/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

@@ -33,6 +33,7 @@ module.exports = {
       'process.env.INFERENCE_SERVER_URL': JSON.stringify(process.env.INFERENCE_SERVER_URL || 'https://api.openai.com/v1'),
       'process.env.MODEL_NAME': JSON.stringify(process.env.MODEL_NAME || 'gpt-3.5-turbo-1106'),
       'process.env.LLM_API_KEY': JSON.stringify(process.env.LLM_API_KEY || ''),
+      'process.env.PROXY_BASE_URL': JSON.stringify(process.env.PROXY_BASE_URL || ''),
     }),
   ],
   devServer: {
