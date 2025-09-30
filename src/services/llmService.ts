@@ -48,7 +48,7 @@ export const extractFlashcards = async (
 
     let baseURL = config.baseUrl;
 
-    if (isProxyRequired) {
+    if (isProxyRequired === true || useMock === true) {
       baseURL = 'http://localhost:3001/api/v1';
     }
 
