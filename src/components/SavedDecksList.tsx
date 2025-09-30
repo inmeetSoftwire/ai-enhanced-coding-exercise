@@ -42,14 +42,14 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleRename = async (deck: Deck): Promise<void> => {
-    const next = window.prompt('Enter new deck title', deck.title);
-    if (next === null) return;
-    const trimmed = next.trim();
-    if (trimmed.length === 0) return;
+    const newTitle = window.prompt('Enter new deck title', deck.title);
+    if (newTitle === null) return;
+    const trimmedNewTitle = newTitle.trim();
+    if (trimmedNewTitle.length === 0) return;
     setError(null);
     setLoading(true);
     try {
-      await updateDeck(deck.id, { title: trimmed });
+      await updateDeck(deck.id, { title: trimmedNewTitle });
       await fetchDecks();
     } catch (e) {
       setError('Failed to rename deck');
