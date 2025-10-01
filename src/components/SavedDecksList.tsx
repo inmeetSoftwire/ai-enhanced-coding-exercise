@@ -5,6 +5,7 @@ import {
 } from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
+import ConfirmModal from './ConfirmModal';
 
 interface SavedDecksListProps {
   onOpen: (set: FlashcardSet) => void;
@@ -137,34 +138,15 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
         ))}
       </ul>
 
-      {confirmingId !== null && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-          <div className="modal-content">
-            <p className="saved-deck-confirm-text">
-              {`Confirm delete "${(decks.find((x) => x.id === confirmingId) ?? { title: '' }).title}"?`}
-            </p>
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => {
-                  const deck = decks.find((x) => x.id === confirmingId);
-                  if (deck !== undefined) { handleDelete(deck).catch(() => {}); }
-                }}
-              >
-                Confirm
-              </button>
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => { setConfirmingId(null); }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={confirmingId !== null}
+        message={`Confirm delete "${(decks.find((x) => x.id === confirmingId) ?? { title: '' }).title}"?`}
+        onConfirm={(): void => {
+          const deck = decks.find((x) => x.id === confirmingId);
+          if (deck !== undefined) { handleDelete(deck).catch(() => {}); }
+        }}
+        onCancel={(): void => { setConfirmingId(null); }}
+      />
 
       {renamingId !== null && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
