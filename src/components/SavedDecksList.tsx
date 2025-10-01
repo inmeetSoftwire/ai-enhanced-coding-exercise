@@ -5,7 +5,9 @@ import {
 } from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
+
 import ConfirmModal from './ConfirmModal';
+import PromptModal from './PromptModal';
 
 interface SavedDecksListProps {
   onOpen: (set: FlashcardSet) => void;
@@ -148,42 +150,18 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
         onCancel={(): void => { setConfirmingId(null); }}
       />
 
-      {renamingId !== null && (
-        <div className="modal-overlay" role="dialog" aria-modal="true">
-          <div className="modal-content">
-            <div className="saved-deck-confirm-text">
-              Enter new deck title
-              <input
-                type="text"
-                value={renameValue}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                  setRenameValue(e.target.value);
-                }}
-              />
-            </div>
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => {
-                  const deck = decks.find((x) => x.id === renamingId);
-                  if (deck !== undefined) { handleRename(deck).catch(() => {}); }
-                }}
-                disabled={renameValue.trim().length === 0}
-              >
-                Confirm
-              </button>
-              <button
-                type="button"
-                className="saved-decks-refresh"
-                onClick={(): void => { setRenamingId(null); setRenameValue(''); }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PromptModal
+        open={renamingId !== null}
+        message="Enter new deck title"
+        value={renameValue}
+        onChange={(next: string): void => { setRenameValue(next); }}
+        onConfirm={(): void => {
+          const deck = decks.find((x) => x.id === renamingId);
+          if (deck !== undefined) { handleRename(deck).catch(() => {}); }
+        }}
+        onCancel={(): void => { setRenamingId(null); setRenameValue(''); }}
+        confirmDisabled={renameValue.trim().length === 0}
+      />
     </div>
   );
 };
