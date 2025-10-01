@@ -39,5 +39,3 @@ export async function searchFlashcards(
   const res = await client.get<{ cards: Flashcard[] }>(`/search?${params.toString()}`);
   return res.data.cards;
 }
-
-export default undefined;

@@ -66,7 +66,7 @@ export const extractFlashcards = async (
         - Return ONLY a JSON object. No prose, no explanations, no code fences.
         - Exact schema: { "flashcards": [ { "question": string, "answer": string } ] }.
         - Use double quotes for all JSON strings. No trailing commas. No comments.
-        - Do not include any additional fields beyond the schema.`
+        - Do not include any additional fields beyond the schema.`,
       },
       {
         role: 'user',
