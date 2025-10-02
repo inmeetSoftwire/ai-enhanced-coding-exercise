@@ -52,8 +52,12 @@ router.delete('/decks/:deckId', async (req, res) => {
 
 router.get('/search', async (req, res) => {
   try {
-    const q = typeof req.query.q === 'string' ? req.query.q : '';
-    const k = typeof req.query.k === 'string' ? parseInt(req.query.k, 10) : 10;
+    const searchQuery = req.query.q || '';
+    if (!searchQuery.trim()) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+    
+    const maxResults = parseInt(req.query.k) || 10;
     const deckId = typeof req.query.deckId === 'string' ? req.query.deckId : undefined;
     const exclude = typeof req.query.exclude === 'string' && req.query.exclude.length > 0
       ? req.query.exclude.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
@@ -63,8 +67,8 @@ router.get('/search', async (req, res) => {
     const where = deckId ? { deckId } : undefined;
 
     const result = await collection.query({
-      queryTexts: [q],
-      nResults: Number.isFinite(k) ? k : 10,
+      queryTexts: [searchQuery],
+      nResults: maxResults,
       where,
       include: ['metadatas', 'documents', 'distances'],
     });
