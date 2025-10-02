@@ -26,11 +26,8 @@ router.post('/index', async (req, res) => {
     const collection = await getCollection();
     const ids = cards.map((c) => c.id);
     const documents = cards.map((c) => `${c.question}\n${c.answer}`);
-    const metadatas = cards.map((c) => ({
-      cardId: c.id,
+    const metadatas = cards.map(() => ({
       deckId,
-      question: c.question,
-      answer: c.answer,
       source,
     }));
     await collection.add({ ids, documents, metadatas });
@@ -73,22 +70,31 @@ router.get('/search', async (req, res) => {
     });
 
     const metadatas = Array.isArray(result.metadatas) ? result.metadatas[0] : [];
+    const documents = Array.isArray(result.documents) ? result.documents[0] : [];
     const distances = Array.isArray(result.distances) ? result.distances[0] : [];
+    const ids = Array.isArray(result.ids) ? result.ids[0] : [];
 
-    const pairs = (metadatas || []).map((m, i) => ({
-      m,
-      distance: Number.isFinite(distances[i]) ? distances[i] : Number.POSITIVE_INFINITY,
-    }));
+    const pairs = metadatas.map((m, i) => {
+      const document = documents[i];
+      const [question, answer] = document.split('\n');
+      return {
+        m,
+        id: ids[i],
+        question,
+        answer,
+        distance: distances[i],
+      };
+    });
 
     pairs.sort((a, b) => a.distance - b.distance);
 
-    const filtered = pairs.filter(({ m }) => {
+    const filtered = pairs.filter(({ question, answer }) => {
       if (exclude.length === 0) return true;
-      const hay = `${m.question} ${m.answer}`.toLowerCase();
-      return exclude.every((t) => hay.includes(t) === false);
+      const cardInfoToCheck = `${question}\n${answer}`.toLowerCase();
+      return exclude.every((t) => cardInfoToCheck.includes(t) === false);
     });
 
-    const cards = filtered.map(({ m }) => ({ id: m.cardId, question: m.question, answer: m.answer }));
+    const cards = filtered.map(({ id, question, answer }) => ({ id, question, answer }));
 
     return res.json({ cards });
   } catch (err) {
