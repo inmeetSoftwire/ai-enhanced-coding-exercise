@@ -17,6 +17,14 @@ const getCollection = async () => {
   return collection;
 };
 
+const filterOutExclusions = (pairs, exclude) => {
+  return pairs.filter(({ question, answer }) => {
+    if (exclude.length === 0) return true;
+    const cardInfoToCheck = `${question}\n${answer}`.toLowerCase();
+    return exclude.every((t) => cardInfoToCheck.includes(t) === false);
+  });
+};
+
 router.post('/index', async (req, res) => {
   try {
     const { deckId, cards, source } = req.body;
@@ -85,7 +93,7 @@ router.get('/search', async (req, res) => {
   if (metadatas.length === 0) {
     return res.json({ cards: [] });
   }
-  const pairs = metadatas.map((m, i) => {
+  const cardResults = metadatas.map((m, i) => {
     const document = documents[i];
     const [question, answer] = document.split('\n');
     return {
@@ -97,15 +105,11 @@ router.get('/search', async (req, res) => {
     };
   });
 
-  pairs.sort((a, b) => a.distance - b.distance);
+  cardResults.sort((a, b) => a.distance - b.distance);
 
-  const filtered = pairs.filter(({ question, answer }) => {
-    if (exclude.length === 0) return true;
-    const cardInfoToCheck = `${question}\n${answer}`.toLowerCase();
-    return exclude.every((t) => cardInfoToCheck.includes(t) === false);
-  });
+  const filteredCardResults = filterOutExclusions(cardResults, exclude);
 
-  const cards = filtered.map(({ id, question, answer }) => ({ id, question, answer }));
+  const cards = filteredCardResults.map(({ id, question, answer }) => ({ id, question, answer }));
 
   return res.json({ cards });
 });
