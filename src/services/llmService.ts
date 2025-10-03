@@ -37,18 +37,20 @@ export const extractFlashcards = async (
     if (!config.baseUrl) {
       throw new Error('API base URL is not configured. Please check your environment variables.');
     }
-    const isProxyRequired = needsCORSproxy(config.baseUrl);
+    const isProxyRequired = true;
 
     let apiKeyToUse = '';
     if (apiKey !== undefined && apiKey !== '') {
       apiKeyToUse = apiKey;
     } else if (config.defaultApiKey !== undefined && config.defaultApiKey !== '') {
       apiKeyToUse = config.defaultApiKey;
+    } else {
+      apiKeyToUse = isProxyRequired ? 'not-needed' : '';
     }
 
     let baseURL = config.baseUrl;
 
-    if (isProxyRequired === true || useMock === true) {
+    if (useMock) {
       baseURL = 'http://localhost:3001/api/v1';
     }
 
@@ -86,7 +88,7 @@ export const extractFlashcards = async (
       'Content-Type': 'application/json',
     };
 
-    if (!isProxyRequired && apiKeyToUse !== '') {
+    if (apiKeyToUse !== '') {
       headers.Authorization = `Bearer ${apiKeyToUse}`;
     }
 
