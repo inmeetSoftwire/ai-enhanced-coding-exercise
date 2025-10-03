@@ -56,10 +56,10 @@ const SearchBar = ({ placeholder } : SearchBarProps) => {
             result(s)
           </div>
           <ul className="list">
-            {results.map((c) => (
-              <li key={c.id} className="item">
-                <div className="q">{c.question}</div>
-                <div className="a">{c.answer}</div>
+            {results.map((card) => (
+              <li key={card.id} className="item">
+                <div className="q">{card.question}</div>
+                <div className="a">{card.answer}</div>
               </li>
             ))}
           </ul>
