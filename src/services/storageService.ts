@@ -2,6 +2,8 @@ import axios from 'axios';
 
 import { Flashcard, FlashcardSet } from '../types';
 
+import { indexCards, removeDeck } from './ragApi';
+
 export type Deck = {
   id: string;
   title: string;
@@ -65,11 +67,13 @@ export const loadDeckAsSet = async (deck: Deck): Promise<FlashcardSet> => {
 export const saveSetAsDeck = async (set: FlashcardSet): Promise<Deck> => {
   const deck = await createDeck(set.title, set.source);
   await createCards(deck.id, set.cards);
+  await indexCards(deck.id, set.cards, set.source);
   return deck;
 };
 
 export const deleteDeck = async (deckId: string): Promise<void> => {
   await client.delete(`/decks/${deckId}`);
+  await removeDeck(deckId);
 };
 
 export const updateDeck = async (

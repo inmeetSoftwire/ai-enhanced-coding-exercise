@@ -15,7 +15,7 @@ interface InputFormProps {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-const InputForm: React.FC<InputFormProps> = ({ setFlashcardSet, setLoading, setError }) => {
+const InputForm = ({ setFlashcardSet, setLoading, setError } : InputFormProps) => {
   const [isUrlInput, setIsUrlInput] = useState(true);
   const [input, setInput] = useState('');
   const [useMockMode, setUseMockMode] = useState(false);

@@ -9,7 +9,7 @@ interface FlashcardViewerProps {
   onReset: () => void;
 }
 
-const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ flashcardSet, onReset }) => {
+const FlashcardViewer = ({ flashcardSet, onReset }  : FlashcardViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [flipped, setFlipped] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');

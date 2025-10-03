@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getLLMConfig } from '../config';
 import { Flashcard } from '../types';
 
-import { truncateContent } from './llmHelpers';
+import { truncateContent, needsCORSproxy } from './llmHelpers';
 
 // This service is compatible with both OpenAI and LMStudio APIs
 
@@ -50,7 +50,7 @@ export const extractFlashcards = async (
 
     let baseURL = config.baseUrl;
 
-    if (isProxyRequired) {
+    if (useMock) {
       baseURL = 'http://localhost:3001/api/v1';
     }
 
@@ -63,7 +63,12 @@ export const extractFlashcards = async (
         Extract key concepts and create question-answer pairs that would be useful for studying.
         Focus on important facts, definitions, and concepts.
         Create between 10-20 flashcards depending on the content length.
-        Format your response as a valid JSON object with a "flashcards" array containing objects with "question" and "answer" properties.`,
+        Format your response as a valid JSON object with a "flashcards" array containing objects with "question" and "answer" properties.
+        Formatting rules:
+        - Return ONLY a JSON object. No prose, no explanations, no code fences.
+        - Exact schema: { "flashcards": [ { "question": string, "answer": string } ] }.
+        - Use double quotes for all JSON strings. No trailing commas. No comments.
+        - Do not include any additional fields beyond the schema.`,
       },
       {
         role: 'user',

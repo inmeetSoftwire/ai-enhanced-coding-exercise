@@ -13,6 +13,30 @@ jest.mock('axios', () => {
   };
 });
 
+jest.mock('@chroma-core/openai', () => ({
+  OpenAIEmbeddingFunction: jest.fn().mockImplementation(() => ({})),
+}));
+
+const mockChromaAdd = jest.fn().mockResolvedValue(undefined);
+const mockChromaDelete = jest.fn().mockResolvedValue(undefined);
+const mockChromaQuery = jest.fn().mockResolvedValue({
+  ids: [[]],
+  distances: [[]],
+  metadatas: [[]],
+  documents: [[]],
+});
+const mockGetOrCreateCollection = jest.fn().mockResolvedValue({
+  add: mockChromaAdd,
+  delete: mockChromaDelete,
+  query: mockChromaQuery,
+});
+
+jest.mock('chromadb', () => ({
+  ChromaClient: jest.fn().mockImplementation(() => ({
+    getOrCreateCollection: mockGetOrCreateCollection,
+  })),
+}));
+
 import {
   listDecks,
   createDeck,

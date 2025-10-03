@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
-
-import { loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck } from '../services/storageService';
+import {
+  loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck,
+} from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
+import ConfirmModal from './ConfirmModal';
+import PromptModal from './PromptModal';
 
 interface SavedDecksListProps {
   onOpen: (set: FlashcardSet) => void;
 }
 
-const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
+const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState<string>('');
 
   const fetchDecks = async (): Promise<void> => {
     setError(null);
@@ -26,14 +32,14 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
     }
   };
 
-  const handleDelete = async (deck: Deck): Promise<void> => {
-    const ok = window.confirm(`Delete deck "${deck.title}"? This cannot be undone.`);
-    if (!ok) return;
+  const handleDelete = async (deckId: string | null): Promise<void> => {
+    if (!deckId) return;
     setError(null);
     setLoading(true);
     try {
-      await deleteDeck(deck.id);
+      await deleteDeck(deckId);
       await fetchDecks();
+      setConfirmingId(null);
     } catch (e) {
       setError('Failed to delete deck');
     } finally {
@@ -42,15 +48,15 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
   };
 
   const handleRename = async (deck: Deck): Promise<void> => {
-    const newTitle = window.prompt('Enter new deck title', deck.title);
-    if (newTitle === null) return;
-    const trimmedNewTitle = newTitle.trim();
-    if (trimmedNewTitle.length === 0) return;
+    const trimmed = renameValue.trim();
+    if (trimmed.length === 0) return;
     setError(null);
     setLoading(true);
     try {
-      await updateDeck(deck.id, { title: trimmedNewTitle });
+      await updateDeck(deck.id, { title: trimmed });
       await fetchDecks();
+      setRenamingId(null);
+      setRenameValue('');
     } catch (e) {
       setError('Failed to rename deck');
     } finally {
@@ -107,21 +113,24 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
               <button
                 type="button"
                 className="saved-deck-open"
-                onClick={(): void => { handleOpen(d).catch(() => {}); }}
+                onClick={() => handleOpen(d)}
               >
                 Open
               </button>
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => { handleRename(d).catch(() => {}); }}
+                onClick={() => {
+                  setRenamingId(d.id);
+                  setRenameValue(d.title);
+                }}
               >
                 Rename
               </button>
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => { handleDelete(d).catch(() => {}); }}
+                onClick={() => setConfirmingId(d.id)}
               >
                 Delete
               </button>
@@ -129,6 +138,26 @@ const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
           </li>
         ))}
       </ul>
+
+      <ConfirmModal
+        open={confirmingId !== null}
+        message={`Confirm delete "${(decks.find((x) => x.id === confirmingId) ?? { title: '' }).title}"?`}
+        onConfirm={() => handleDelete(confirmingId)}
+        onCancel={(): void => { setConfirmingId(null); }}
+      />
+
+      <PromptModal
+        open={renamingId !== null}
+        message="Enter new deck title"
+        value={renameValue}
+        onChange={(next: string): void => { setRenameValue(next); }}
+        onConfirm={(): void => {
+          const deck = decks.find((x) => x.id === renamingId);
+          if (deck !== undefined) { handleRename(deck).catch(() => {}); }
+        }}
+        onCancel={(): void => { setRenamingId(null); setRenameValue(''); }}
+        confirmDisabled={renameValue.trim().length === 0}
+      />
     </div>
   );
 };

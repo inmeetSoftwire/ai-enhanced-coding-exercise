@@ -9,10 +9,15 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors());
+app.use(express.json());
 
 // Minimal SQLite-backed storage endpoints
 const storageRouter = require('./routes/storage');
 app.use('/api/storage', storageRouter);
+
+// RAG (Chroma) endpoints
+const ragRouter = require('./routes/rag');
+app.use('/api/rag', ragRouter);
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} [${req.method}] ${req.url}`);
