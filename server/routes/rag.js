@@ -82,7 +82,9 @@ router.get('/search', async (req, res) => {
   const documents = Array.isArray(result.documents) ? result.documents[0] : [];
   const distances = Array.isArray(result.distances) ? result.distances[0] : [];
   const ids = Array.isArray(result.ids) ? result.ids[0] : [];
-
+  if (metadatas.length === 0) {
+    return res.json({ cards: [] });
+  }
   const pairs = metadatas.map((m, i) => {
     const document = documents[i];
     const [question, answer] = document.split('\n');
