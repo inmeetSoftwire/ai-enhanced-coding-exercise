@@ -32,11 +32,12 @@ const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
     }
   };
 
-  const handleDelete = async (deck: Deck): Promise<void> => {
+  const handleDelete = async (deckId: string | null): Promise<void> => {
+    if (!deckId) return;
     setError(null);
     setLoading(true);
     try {
-      await deleteDeck(deck.id);
+      await deleteDeck(deckId);
       await fetchDecks();
       setConfirmingId(null);
     } catch (e) {
@@ -112,14 +113,14 @@ const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
               <button
                 type="button"
                 className="saved-deck-open"
-                onClick={(): void => { handleOpen(d).catch(() => {}); }}
+                onClick={() => handleOpen(d)}
               >
                 Open
               </button>
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => {
+                onClick={() => {
                   setRenamingId(d.id);
                   setRenameValue(d.title);
                 }}
@@ -129,7 +130,7 @@ const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
               <button
                 type="button"
                 className="saved-decks-refresh"
-                onClick={(): void => { setConfirmingId(d.id); }}
+                onClick={() => setConfirmingId(d.id)}
               >
                 Delete
               </button>
@@ -141,10 +142,7 @@ const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
       <ConfirmModal
         open={confirmingId !== null}
         message={`Confirm delete "${(decks.find((x) => x.id === confirmingId) ?? { title: '' }).title}"?`}
-        onConfirm={(): void => {
-          const deck = decks.find((x) => x.id === confirmingId);
-          if (deck !== undefined) { handleDelete(deck).catch(() => {}); }
-        }}
+        onConfirm={() => handleDelete(confirmingId)}
         onCancel={(): void => { setConfirmingId(null); }}
       />
 
