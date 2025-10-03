@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-
 import {
   loadDeckAsSet, listDecks, deleteDeck, updateDeck, type Deck,
 } from '../services/storageService';
 import type { FlashcardSet } from '../types';
 import '../styles/SavedDecksList.css';
-
 import ConfirmModal from './ConfirmModal';
 import PromptModal from './PromptModal';
 
