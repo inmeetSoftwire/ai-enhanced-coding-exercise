@@ -32,9 +32,7 @@ const PromptModal = ({
           <input
             type="text"
             value={value}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-              onChange(e.target.value);
-            }}
+            onChange={(e) => onChange(e.target.value)}
           />
         </div>
         <div className="modal-actions">
