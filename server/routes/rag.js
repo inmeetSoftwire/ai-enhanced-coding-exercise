@@ -51,60 +51,61 @@ router.delete('/decks/:deckId', async (req, res) => {
 });
 
 router.get('/search', async (req, res) => {
+  const searchQuery = req.query.q || '';
+  if (!searchQuery.trim()) {
+    return res.status(400).json({ error: 'Search query is required' });
+  }
+  
+  const maxResults = parseInt(req.query.k) || 10;
+  const deckId = typeof req.query.deckId === 'string' ? req.query.deckId : undefined;
+  const exclude = typeof req.query.exclude === 'string' && req.query.exclude.length > 0
+    ? req.query.exclude.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    : [];
+  let result;
   try {
-    const searchQuery = req.query.q || '';
-    if (!searchQuery.trim()) {
-      return res.status(400).json({ error: 'Search query is required' });
-    }
-    
-    const maxResults = parseInt(req.query.k) || 10;
-    const deckId = typeof req.query.deckId === 'string' ? req.query.deckId : undefined;
-    const exclude = typeof req.query.exclude === 'string' && req.query.exclude.length > 0
-      ? req.query.exclude.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-      : [];
-
+    // Database query
     const collection = await getCollection();
     const where = deckId ? { deckId } : undefined;
 
-    const result = await collection.query({
+    result = await collection.query({
       queryTexts: [searchQuery],
       nResults: maxResults,
       where,
       include: ['metadatas', 'documents', 'distances'],
     });
-
-    const metadatas = Array.isArray(result.metadatas) ? result.metadatas[0] : [];
-    const documents = Array.isArray(result.documents) ? result.documents[0] : [];
-    const distances = Array.isArray(result.distances) ? result.distances[0] : [];
-    const ids = Array.isArray(result.ids) ? result.ids[0] : [];
-
-    const pairs = metadatas.map((m, i) => {
-      const document = documents[i];
-      const [question, answer] = document.split('\n');
-      return {
-        m,
-        id: ids[i],
-        question,
-        answer,
-        distance: distances[i],
-      };
-    });
-
-    pairs.sort((a, b) => a.distance - b.distance);
-
-    const filtered = pairs.filter(({ question, answer }) => {
-      if (exclude.length === 0) return true;
-      const cardInfoToCheck = `${question}\n${answer}`.toLowerCase();
-      return exclude.every((t) => cardInfoToCheck.includes(t) === false);
-    });
-
-    const cards = filtered.map(({ id, question, answer }) => ({ id, question, answer }));
-
-    return res.json({ cards });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Search failed';
     return res.status(500).json({ error: message });
   }
+  // Process results
+  const metadatas = Array.isArray(result.metadatas) ? result.metadatas[0] : [];
+  const documents = Array.isArray(result.documents) ? result.documents[0] : [];
+  const distances = Array.isArray(result.distances) ? result.distances[0] : [];
+  const ids = Array.isArray(result.ids) ? result.ids[0] : [];
+
+  const pairs = metadatas.map((m, i) => {
+    const document = documents[i];
+    const [question, answer] = document.split('\n');
+    return {
+      m,
+      id: ids[i],
+      question,
+      answer,
+      distance: distances[i],
+    };
+  });
+
+  pairs.sort((a, b) => a.distance - b.distance);
+
+  const filtered = pairs.filter(({ question, answer }) => {
+    if (exclude.length === 0) return true;
+    const cardInfoToCheck = `${question}\n${answer}`.toLowerCase();
+    return exclude.every((t) => cardInfoToCheck.includes(t) === false);
+  });
+
+  const cards = filtered.map(({ id, question, answer }) => ({ id, question, answer }));
+
+  return res.json({ cards });
 });
 
 module.exports = router;
