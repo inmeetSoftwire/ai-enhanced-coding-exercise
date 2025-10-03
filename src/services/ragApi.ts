@@ -25,13 +25,13 @@ export async function removeDeck(deckId: string): Promise<void> {
 
 export async function searchFlashcards(
   query: string,
-  k: number = 10,
+  maxNumOfResults: number = 10,
   opts?: { deckId?: string; exclude?: string[] },
 ): Promise<Flashcard[]> {
   const client = getClient();
   const params = new URLSearchParams();
   params.set('q', query);
-  params.set('k', String(k));
+  params.set('k', String(maxNumOfResults));
   if (opts?.deckId !== undefined) params.set('deckId', opts.deckId);
   if (opts?.exclude !== undefined && opts.exclude.length > 0) {
     params.set('exclude', opts.exclude.join(','));
