@@ -7,7 +7,7 @@ import SearchBar from './components/SearchBar';
 import { FlashcardSet } from './types';
 import './styles/App.css';
 
-const App: React.FC = () => {
+const App = () => {
   const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

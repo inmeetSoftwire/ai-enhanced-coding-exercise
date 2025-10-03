@@ -5,7 +5,7 @@ interface MockModeToggleProps {
   onChange: (useMock: boolean) => void;
 }
 
-export const MockModeToggle: React.FC<MockModeToggleProps> = ({ onChange }) => {
+export const MockModeToggle = ({ onChange } : MockModeToggleProps) => {
   const [useMock, setUseMock] = useState<boolean>(true);
 
   useEffect(() => {

@@ -5,11 +5,11 @@ import type { Flashcard } from '../types';
 
 import '../styles/SearchBar.css';
 
-type Props = {
+type SearchBarProps = {
   placeholder?: string;
 };
 
-const SearchBar: React.FC<Props> = ({ placeholder }): JSX.Element => {
+const SearchBar = ({ placeholder } : SearchBarProps) => {
   const [query, setQuery] = useState<string>('');
   const [results, setResults] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState<boolean>(false);

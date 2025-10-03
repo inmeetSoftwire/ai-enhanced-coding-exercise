@@ -11,7 +11,7 @@ interface SavedDecksListProps {
   onOpen: (set: FlashcardSet) => void;
 }
 
-const SavedDecksList: React.FC<SavedDecksListProps> = ({ onOpen }) => {
+const SavedDecksList = ({ onOpen } : SavedDecksListProps) => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

@@ -12,7 +12,7 @@ interface PromptModalProps {
   confirmDisabled?: boolean;
 }
 
-const PromptModal: React.FC<PromptModalProps> = ({
+const PromptModal = ({
   open,
   message,
   value,

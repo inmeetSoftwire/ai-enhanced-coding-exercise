@@ -9,7 +9,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
-const ConfirmModal: React.FC<ConfirmModalProps> = ({
+const ConfirmModal = ({
   open,
   message,
   confirmLabel = 'Confirm',
